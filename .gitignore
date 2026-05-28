@@ -1,54 +1,59 @@
-# Dependency Directories
+# Dependency Directories (Recursive)
+**/node_modules/
 node_modules/
 jspm_packages/
 web_modules/
 
-# Original Unorganized Folders (Ignored to keep repository clean)
+# Original Unorganized Folders (Ignored to keep workspace root clean)
 /neuro-chat-luxe-main/
 /backend/
+/CODSOFT/
 
-
-# Production and Build Outputs
-dist/
-dist-ssr/
+# Production and Build Outputs (Recursive)
+**/dist/
+**/dist-ssr/
+**/.output/
+**/.vinxi/
+**/.nitro/
+**/.tanstack/
 build/
-.output/
-.vinxi/
-.nitro/
-.tanstack/
 out/
 .next/
 
-# Local Environment Variables and Secrets
+# Local Environment Variables and Secrets (Recursive)
+**/.env
+**/.env.local
+**/.env.development.local
+**/.env.test.local
+**/.env.production.local
+**/*.env
+**/*.local
 .env
 .env.local
-.env.development.local
-.env.test.local
-.env.production.local
 *.env
 *.local
 
-# Logs
-logs/
-*.log
+# Logs (Recursive)
+**/logs/
+**/*.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-# Editor and OS specific files
-.vscode/*
-!.vscode/extensions.json
-.idea/
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
-.DS_Store
+# Editor and OS specific files (Recursive)
+**/.vscode/*
+!**/.vscode/extensions.json
+**/.idea/
+**/*.suo
+**/*.ntvs*
+**/*.njsproj
+**/*.sln
+**/*.sw?
+**/.DS_Store
 Thumbs.db
 
-# Cloudflare / Serverless configs
-.wrangler/
-.dev.vars
+# Cloudflare / Serverless configs (Recursive)
+**/.wrangler/
+**/.dev.vars
