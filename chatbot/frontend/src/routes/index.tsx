@@ -14,8 +14,58 @@ import {
   ArrowRight,
   Trash2,
 } from "lucide-react";
-import { apiRequest, ensureDemoAuthentication } from "../lib/api/client";
 import { toast } from "sonner";
+
+// Simple if-else condition for rule-based chatbot replies
+function generateRuleBasedResponse(userInput: string): string {
+  const input = userInput.trim().toLowerCase();
+
+  // 1. Greetings
+  if (
+    input === "hi" ||
+    input === "hello" ||
+    input === "hey" ||
+    input === "yo" ||
+    input === "greetings" ||
+    input.includes("hello") ||
+    input.includes("hi there") ||
+    input.includes("hey there")
+  ) {
+    return "Hello! I am NeuroChat, your rule-based assistant. How can I help you today?";
+  }
+  // 2. Name/identity questions
+  else if (
+    input.includes("name") ||
+    input.includes("who are you") ||
+    input.includes("what are you") ||
+    input.includes("identity")
+  ) {
+    return "I am NeuroChat, a lightweight rule-based chatbot designed to help answer your queries offline. I run entirely on your browser!";
+  }
+  // 3. Help/support queries
+  else if (
+    input.includes("help") ||
+    input.includes("support") ||
+    input.includes("what can you do") ||
+    input.includes("features") ||
+    input.includes("how to use")
+  ) {
+    return "I can respond to greetings, tell you about my identity, or give you information about my features. Just ask me!";
+  }
+  // 4. Basic topic: Weather
+  else if (input.includes("weather") || input.includes("temperature") || input.includes("rain")) {
+    return "I run completely offline, so I cannot check the live weather. But I hope it is a wonderful day wherever you are!";
+  }
+  // 5. Basic topic: Time
+  else if (input.includes("time") || input.includes("date") || input.includes("day")) {
+    return "According to your system clock, the current time is " + new Date().toLocaleTimeString() + " on " + new Date().toLocaleDateString() + ".";
+  }
+  // 6. Unknown inputs -> Fallback response
+  else {
+    return "I'm sorry, I didn't understand that. Could you please rephrase or ask me a greeting, name, or help query? (Running in offline rule-based mode)";
+  }
+}
+
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -160,20 +210,24 @@ function ChatPreview() {
   const [inputVal, setInputVal] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(true);
   const chatContainerRef = useRef<HTMLDivElement>(null);
 
-  // Initialize and ensure silent guest authentication
+  // Initialize and load conversations from localStorage
   useEffect(() => {
-    async function initAuth() {
-      const token = await ensureDemoAuthentication();
-      if (token) {
-        setIsAuthenticated(true);
-        loadConversations();
+    if (typeof window !== "undefined") {
+      const storedConvs = localStorage.getItem("neurochat_conversations");
+      if (storedConvs) {
+        setConversations(JSON.parse(storedConvs));
       }
     }
-    initAuth();
   }, []);
+
+  // Save conversations to localStorage whenever they change
+  const saveConversations = (updatedConvs: any[]) => {
+    setConversations(updatedConvs);
+    localStorage.setItem("neurochat_conversations", JSON.stringify(updatedConvs));
+  };
 
   // Scroll message container to bottom when new messages appear
   useEffect(() => {
@@ -185,35 +239,21 @@ function ChatPreview() {
     }
   }, [messages, isLoading]);
 
-  // Load active conversation messages
+  // Load active conversation messages from localStorage
   useEffect(() => {
     if (activeId) {
-      loadMessages(activeId);
+      const storedMsgs = localStorage.getItem(`neurochat_messages_${activeId}`);
+      if (storedMsgs) {
+        setMessages(JSON.parse(storedMsgs));
+      } else {
+        setMessages([]);
+      }
     } else {
       setMessages([]);
     }
   }, [activeId]);
 
-  const loadConversations = async () => {
-    try {
-      const data = await apiRequest("/api/conversations");
-      setConversations(data);
-    } catch (err: any) {
-      console.error("Failed to load conversations", err);
-    }
-  };
-
-  const loadMessages = async (id: string) => {
-    try {
-      const data = await apiRequest(`/api/messages/${id}`);
-      setMessages(data);
-    } catch (err: any) {
-      console.error("Failed to load messages", err);
-      toast.error("Could not load message history.");
-    }
-  };
-
-  const handleSendMessage = async (e: React.FormEvent) => {
+  const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();
     if (!inputVal.trim() || isLoading) return;
 
@@ -221,65 +261,64 @@ function ChatPreview() {
     setInputVal("");
     setIsLoading(true);
 
+    let currentConversationId = activeId;
+    let updatedConversations = [...conversations];
+
+    // If no active conversation, create a new one first
+    if (!currentConversationId) {
+      currentConversationId = "conv-" + Date.now();
+      const newConv = {
+        _id: currentConversationId,
+        title: userText.length > 25 ? userText.substring(0, 25) + "..." : userText,
+        createdAt: new Date().toISOString(),
+      };
+      updatedConversations = [newConv, ...conversations];
+      saveConversations(updatedConversations);
+      setActiveId(currentConversationId);
+    }
+
     // Optimistically render the user message
-    const tempUserMessage = {
-      _id: "temp-user-id-" + Date.now(),
+    const userMessage = {
+      _id: "msg-" + Date.now(),
       sender: "user" as const,
       text: userText,
       createdAt: new Date().toISOString(),
     };
-    setMessages((prev) => [...prev, tempUserMessage]);
 
-    try {
-      const response = await apiRequest("/api/chat", {
-        method: "POST",
-        body: JSON.stringify({
-          conversationId: activeId,
-          text: userText,
-        }),
-      });
+    const newMessages = [...messages, userMessage];
+    setMessages(newMessages);
+    localStorage.setItem(`neurochat_messages_${currentConversationId}`, JSON.stringify(newMessages));
 
-      // Update message history with actual saved messages
-      setMessages((prev) =>
-        prev.filter((m) => m._id !== tempUserMessage._id).concat([
-          response.userMessage,
-          response.aiMessage,
-        ])
-      );
+    // Simulate rule-based response with short typing delay
+    setTimeout(() => {
+      const botResponseText = generateRuleBasedResponse(userText);
+      const aiMessage = {
+        _id: "msg-" + (Date.now() + 1),
+        sender: "ai" as const,
+        text: botResponseText,
+        createdAt: new Date().toISOString(),
+      };
 
-      // If a new conversation was created, set it as active
-      if (!activeId && response.conversationId) {
-        setActiveId(response.conversationId);
-      }
-
-      // Reload sidebar to reflect changes (timestamps, new items)
-      loadConversations();
-    } catch (err: any) {
-      console.error("Failed to send message", err);
-      toast.error("Failed to send message. Please verify server status.");
-      // Remove optimistic message if send failed
-      setMessages((prev) => prev.filter((m) => m._id !== tempUserMessage._id));
-    } finally {
+      const finalMessages = [...newMessages, aiMessage];
+      setMessages(finalMessages);
+      localStorage.setItem(`neurochat_messages_${currentConversationId!}`, JSON.stringify(finalMessages));
       setIsLoading(false);
+    }, 600);
+  };
+
+  const handleDeleteConversation = (id: string, e: React.MouseEvent) => {
+    e.stopPropagation(); // Avoid selecting the deleted item
+    
+    const updatedConvs = conversations.filter((c) => c._id !== id);
+    saveConversations(updatedConvs);
+    localStorage.removeItem(`neurochat_messages_${id}`);
+    
+    toast.success("Chat deleted.");
+    if (activeId === id) {
+      setActiveId(null);
     }
   };
 
-  const handleDeleteConversation = async (id: string, e: React.MouseEvent) => {
-    e.stopPropagation(); // Avoid selecting the deleted item
-    try {
-      await apiRequest(`/api/conversations/${id}`, {
-        method: "DELETE",
-      });
-      toast.success("Chat deleted.");
-      if (activeId === id) {
-        setActiveId(null);
-      }
-      loadConversations();
-    } catch (err: any) {
-      console.error("Failed to delete conversation", err);
-      toast.error("Could not delete conversation.");
-    }
-  };
 
   const activeConversationTitle = conversations.find((c) => c._id === activeId)?.title || "NeuroChat Assistant";
 
@@ -385,9 +424,9 @@ function ChatPreview() {
                   <div className="h-10 w-10 rounded-full bg-gradient-gold grid place-items-center animate-pulse">
                     <Sparkles className="h-5 w-5 text-primary-foreground" />
                   </div>
-                  <h4 className="text-base font-medium">Start a calm conversation</h4>
+                  <h4 className="text-base font-medium">Start a conversation</h4>
                   <p className="text-xs text-muted-foreground max-w-sm">
-                    Ask NeuroChat AI anything. Your session history is auto-saved securely to MongoDB.
+                    Ask NeuroChat anything. Your session history is saved locally in your web browser.
                   </p>
                 </div>
               ) : (
@@ -465,10 +504,10 @@ function About() {
           <span className="italic" style={{ color: "var(--coffee)" }}>crafted with intention.</span>
         </h2>
         <p className="mt-6 max-w-2xl mx-auto text-muted-foreground leading-relaxed">
-          NeuroChat AI is built using Python and powered by an intelligent conversation system. The experience is responsive, warm, and quiet — designed to feel as natural as a good chat over coffee.
+          NeuroChat is built using HTML, CSS, and React, running as a fully client-side rule-based chatbot. The experience is responsive, warm, and quiet — designed to feel as natural as a good chat over coffee.
         </p>
         <div className="mt-10 flex flex-wrap items-center justify-center gap-3 text-xs">
-          {["Built with Python", "Intelligent conversation", "Responsive experience"].map((t) => (
+          {["Rule-Based Logic", "Predefined Conversational Rules", "Responsive experience"].map((t) => (
             <span
               key={t}
               className="rounded-full border border-border bg-card px-4 py-2 shadow-soft text-muted-foreground"
