@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TicTacToe AI — Premium Smart Strategy Game</title>
+  <meta name="description" content="Experience TicTacToe AI, a premium single-player strategic game with an advanced, unbeatable Minimax AI opponent, a stunning cold-themed interface, and responsive particle physics.">
+  <!-- Google Fonts: Inter & Outfit -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Canvas for dynamic particle network background -->
+  <canvas id="bg-canvas"></canvas>
+  <div class="noise-overlay"></div>
+
+  <!-- Main Container -->
+  <main class="app-container">
+    
+    <!-- 1. Landing Screen -->
+    <section id="screen-landing" class="screen active">
+      <div class="logo-container">
+        <!-- Premium AI Grid Logo -->
+        <svg class="ai-logo" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="logo-glow" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#00f0ff" />
+              <stop offset="50%" stop-color="#3b82f6" />
+              <stop offset="100%" stop-color="#a3c7ff" />
+            </linearGradient>
+            <filter id="glow-effect" x="-20%" y="-20%" width="140%" height="140%">
+              <feGaussianBlur stdDeviation="4" result="blur" />
+              <feComposite in="SourceGraphic" in2="blur" operator="over" />
+            </filter>
+          </defs>
+          
+          <!-- Outer Grid Boundaries -->
+          <rect x="10" y="10" width="80" height="80" rx="16" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="1.5" />
+          
+          <!-- Grid Lines (Subtle) -->
+          <line x1="36.6" y1="15" x2="36.6" y2="85" stroke="rgba(255,255,255,0.08)" stroke-width="1" />
+          <line x1="63.3" y1="15" x2="63.3" y2="85" stroke="rgba(255,255,255,0.08)" stroke-width="1" />
+          <line x1="15" y1="36.6" x2="85" y2="36.6" stroke="rgba(255,255,255,0.08)" stroke-width="1" />
+          <line x1="15" y1="63.3" x2="85" y2="63.3" stroke="rgba(255,255,255,0.08)" stroke-width="1" />
+          
+          <!-- Neural / AI Connections -->
+          <path d="M 22 22 L 50 50 M 50 50 L 78 78 M 78 22 L 50 50 M 50 50 L 22 78" stroke="url(#logo-glow)" stroke-width="1.5" stroke-dasharray="4 2" opacity="0.65" />
+          
+          <!-- Grid Nodes (Circles) -->
+          <circle cx="22" cy="22" r="4" fill="#3b82f6" />
+          <circle cx="50" cy="22" r="4" fill="rgba(255,255,255,0.3)" />
+          <circle cx="78" cy="22" r="4" fill="#a3c7ff" />
+          
+          <circle cx="22" cy="50" r="4" fill="rgba(255,255,255,0.3)" />
+          <circle cx="50" cy="50" r="7" fill="url(#logo-glow)" filter="url(#glow-effect)" class="center-node" />
+          <circle cx="78" cy="50" r="4" fill="rgba(255,255,255,0.3)" />
+          
+          <circle cx="22" cy="78" r="4" fill="#a3c7ff" />
+          <circle cx="50" cy="78" r="4" fill="rgba(255,255,255,0.3)" />
+          <circle cx="78" cy="78" r="4" fill="#3b82f6" />
+        </svg>
+      </div>
+
+      <div class="landing-text-content">
+        <h1 class="landing-title">TicTacToe <span class="gradient-text">AI</span></h1>
+        <p class="landing-subtitle">Challenge an intelligent AI opponent powered by advanced decision-making algorithms.</p>
+      </div>
+
+      <div class="landing-actions">
+        <button id="btn-start" class="btn btn-primary btn-glow">
+          <span>Start Game</span>
+          <svg class="btn-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+            <polyline points="12 5 19 12 12 19"></polyline>
+          </svg>
+        </button>
+      </div>
+    </section>
+
+    <!-- 2. Difficulty Selection Screen -->
+    <section id="screen-difficulty" class="screen">
+      <div class="header-section">
+        <h2 class="section-title">Select AI Intelligence</h2>
+        <p class="section-subtitle">Choose the computational depth of your artificial opponent.</p>
+      </div>
+
+      <div class="cards-grid">
+        <!-- Card 1: Easy -->
+        <button class="difficulty-card" data-difficulty="easy" id="card-easy">
+          <div class="card-glow-bg"></div>
+          <div class="card-content">
+            <div class="card-icon-container accent-blue">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"></circle>
+                <path d="M8 14s1.5 2 4 2 4-2 4-2"></path>
+                <line x1="9" y1="9" x2="9.01" y2="9"></line>
+                <line x1="15" y1="9" x2="15.01" y2="9"></line>
+              </svg>
+            </div>
+            <h3 class="card-title">Easy Mode</h3>
+            <p class="card-description">Perfect for learning and casual play. The AI is beginner-friendly and makes occasional errors.</p>
+            <div class="card-action-indicator">
+              <span>Select Strategy</span>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+            </div>
+          </div>
+        </button>
+
+        <!-- Card 2: Medium -->
+        <button class="difficulty-card" data-difficulty="medium" id="card-medium">
+          <div class="card-glow-bg"></div>
+          <div class="card-content">
+            <div class="card-icon-container accent-cyan">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path>
+              </svg>
+            </div>
+            <h3 class="card-title">Medium Mode</h3>
+            <p class="card-description">Balanced AI opponent. Utilizes strategic positioning and responds to threats with solid game sense.</p>
+            <div class="card-action-indicator">
+              <span>Select Strategy</span>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+            </div>
+          </div>
+        </button>
+
+        <!-- Card 3: Hard -->
+        <button class="difficulty-card card-premium-glow" data-difficulty="hard" id="card-hard">
+          <div class="card-glow-bg"></div>
+          <div class="card-content">
+            <div class="card-icon-container accent-ice">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96-.44 2.5 2.5 0 0 1 0-3.12 3 3 0 0 1 0-4.88 2.5 2.5 0 0 1 0-3.12A2.5 2.5 0 0 1 9.5 2z"></path>
+                <path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96-.44 2.5 2.5 0 0 0 0-3.12 3 3 0 0 0 0-4.88 2.5 2.5 0 0 0 0-3.12A2.5 2.5 0 0 0 14.5 2z"></path>
+              </svg>
+            </div>
+            <h3 class="card-title">Hard Mode</h3>
+            <p class="card-description">Maximum difficulty. Powered by the Minimax Algorithm. The AI computes all possibilities and plays flawlessly.</p>
+            <div class="card-action-indicator">
+              <span>Select Strategy</span>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+            </div>
+          </div>
+        </button>
+      </div>
+
+      <div class="back-to-landing-wrapper">
+        <button id="btn-difficulty-back" class="btn btn-secondary">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="19" y1="12" x2="5" y2="12"></line>
+            <polyline points="12 19 5 12 12 5"></polyline>
+          </svg>
+          <span>Back</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- 3. Game Screen -->
+    <section id="screen-game" class="screen">
+      <div class="game-layout">
+        
+        <!-- Sidebar Info -->
+        <div class="game-info-sidebar">
+          <div class="glass-panel difficulty-badge-container">
+            <span class="badge-label">OPPONENT LEVEL</span>
+            <div class="difficulty-indicator-wrapper">
+              <span class="pulse-indicator glow-pulse"></span>
+              <span id="game-difficulty-val" class="difficulty-text">Hard</span>
+            </div>
+          </div>
+
+          <!-- Score Tracker -->
+          <div class="glass-panel scoreboard">
+            <div class="score-item player-score active" id="player-score-card">
+              <span class="score-symbol">X</span>
+              <span class="score-name">Player</span>
+              <span class="score-num" id="score-player">0</span>
+            </div>
+            <div class="score-divider"></div>
+            <div class="score-item draw-score" id="draw-score-card">
+              <span class="score-symbol">=</span>
+              <span class="score-name">Draws</span>
+              <span class="score-num" id="score-draw">0</span>
+            </div>
+            <div class="score-divider"></div>
+            <div class="score-item ai-score" id="ai-score-card">
+              <span class="score-symbol">O</span>
+              <span class="score-name">AI Core</span>
+              <span class="score-num" id="score-ai">0</span>
+            </div>
+          </div>
+
+          <!-- Status Indicator -->
+          <div class="game-status-wrapper">
+            <p id="game-status-text" class="status-msg">Your Turn</p>
+          </div>
+        </div>
+
+        <!-- 3x3 Tic Tac Toe Grid -->
+        <div class="board-container">
+          <div class="glass-panel board-glass-wrapper">
+            <div class="game-board" id="board">
+              <!-- Cells 0 to 8 -->
+              <button class="cell" data-index="0" aria-label="Cell top-left"></button>
+              <button class="cell" data-index="1" aria-label="Cell top-middle"></button>
+              <button class="cell" data-index="2" aria-label="Cell top-right"></button>
+              <button class="cell" data-index="3" aria-label="Cell middle-left"></button>
+              <button class="cell" data-index="4" aria-label="Cell middle-middle"></button>
+              <button class="cell" data-index="5" aria-label="Cell middle-right"></button>
+              <button class="cell" data-index="6" aria-label="Cell bottom-left"></button>
+              <button class="cell" data-index="7" aria-label="Cell bottom-middle"></button>
+              <button class="cell" data-index="8" aria-label="Cell bottom-right"></button>
+
+              <!-- SVG Winning Laser Overlay Line -->
+              <svg class="winning-line-svg" viewBox="0 0 300 300">
+                <line id="win-line" x1="0" y1="0" x2="0" y2="0" stroke="url(#laser-glow)" stroke-linecap="round" />
+                <defs>
+                  <linearGradient id="laser-glow" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#00f0ff" />
+                    <stop offset="50%" stop-color="#ffffff" />
+                    <stop offset="100%" stop-color="#3b82f6" />
+                  </linearGradient>
+                </defs>
+              </svg>
+            </div>
+          </div>
+        </div>
+
+        <!-- Game Control Panel -->
+        <div class="game-controls">
+          <button id="btn-back-menu" class="btn btn-secondary">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="19" y1="12" x2="5" y2="12"></line>
+              <polyline points="12 19 5 12 12 5"></polyline>
+            </svg>
+            <span>Exit Game</span>
+          </button>
+          
+          <button id="btn-restart" class="btn btn-primary">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"></path>
+            </svg>
+            <span>Restart Round</span>
+          </button>
+        </div>
+
+      </div>
+    </section>
+  </main>
+
+  <!-- Project footer (very subtle) -->
+  <footer class="game-footer">
+    <span>TICTACTOE AI © 2026 // NEURAL NETWORK DECISION ENGINE</span>
+  </footer>
+
+  <!-- Combined Scripts -->
+  <script src="script.js"></script>
+</body>
+</html>
